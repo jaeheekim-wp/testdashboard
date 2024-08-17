@@ -273,6 +273,7 @@ house1015["Value_For_Money"] = house1015["Score_year_remod"] / house1015["Sale_P
 # 가성비 높은 순으로 정렬
 house1015 = house1015.sort_values("Value_For_Money", ascending=False)
 house1015.head(50)
+house1015
 
 # 시각화
 
@@ -298,14 +299,24 @@ plt.grid(True)
 plt.show()
 plt.clf()
 
+
 # 02
-# 히스토그램
-plt.subplots_adjust(left=0.27, bottom=0.17)
-plt.rcParams.update({"font.family" : "Malgun Gothic"})    
-sns.histplot(house1015['Value_For_Money'], bins=30, kde=True, color='skyblue')
-plt.title('Value_For_Money')
-plt.xlabel('Score_year_remod')
+# 히스토그램 그리기 ( 소수점 범위가 작아서 안그려짐 )
+plt.hist(house1015["Value_For_Money"], bins=30, color='skyblue')
+plt.xlabel('Value For Money')
 plt.ylabel('Frequency')
+plt.title('Histogram of Value For Money')
+
+# X축을 로그 스케일로 변환
+plt.xscale('log')
+
+# X축 라벨 포맷 설정
+plt.xticks([1e-5, 1e-4, 1e-3, 1e-2, 1e-1], ['0.00001', '0.0001', '0.001', '0.01', '0.1'])
+
+# X축 범위 설정
+plt.ylim(0, 0.0001)
+plt.xlim(1e-5, 1e-3)  # 이 범위는 데이터에 맞게 조정
+
 plt.show()
 plt.clf()
 
