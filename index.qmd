@@ -9,7 +9,7 @@ import plotly.express as px
 df = px.data.gapminder()
 ```
 
-## Row {height=60%}
+## Row {height=60%} 
 
 ```{python}
 #| title: GDP and Life Expectancy 
