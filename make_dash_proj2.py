@@ -403,7 +403,6 @@ house1015['Total_Score'] = (
 
 house1015
 
-
 # 결과 확인
 top_value_houses = house1015[["Longitude", 'Latitude', 'Neighborhood','Sale_Price', 'Score_GrLivArea', 'Score_Overall_Cond',
                                     'Score_GarageCars', 'Score_year_remod','Score_Year_Built', 'Total_Score']]
@@ -428,32 +427,49 @@ top_10_houses = top_value_houses.head(10)
 map_center = [top_10_houses['Latitude'].mean(), top_10_houses['Longitude'].mean()]
 
 # 지도 생성
-house_map = folium.Map(location=map_center, zoom_start=12)
+house_map = folium.Map(location=map_center, zoom_start=12, tiles="cartodbpositron")
 
 # 각 집의 위치에 마커 추가
 for _, house in top_10_houses.iterrows():
-    folium.Marker(
-        location=[top_10_houses['Latitude'], top_10_houses['Longitude']],
+    folium.CircleMarker(
+        location=[house['Latitude'], house['Longitude']],
         popup=(
-            f"Neighborhood: {top_10_houses['Neighborhood']}<br>"
-            f"Sale Price: ${top_10_houses['Sale_Price']:,}<br>"
-            f"Total Score: {top_10_houses['Total_Score']:.2f}"
+            f"Neighborhood: {house['Neighborhood']}<br>"
+            f"Sale Price: ${int(house['Sale_Price']):,}<br>"
+            f"Total Score: {house['Total_Score']:.2f}"
         ),
         icon=folium.Icon(color='blue', icon='home')
     ).add_to(house_map)
 
 # 지도 표시
-house_map.save('top_10_houses.html') 
+house_map.save('top_10_houses.html')
 
+print(len(list(zip(
+    top_10_houses['Latitude'], 
+    top_10_houses['Longitude'], 
+    top_10_houses['Neighborhood'], 
+    top_10_houses['Sale_Price'], 
+    top_10_houses['Total_Score']
+))))
 
-
-
-
-
-
-
-
-
+# for lat, lon, neighborhood, sale_price, total_score in zip(
+#     top_10_houses['Latitude'], 
+#     top_10_houses['Longitude'], 
+#     top_10_houses['Neighborhood'], 
+#     top_10_houses['Sale_Price'], 
+#     top_10_houses['Total_Score']
+# ):
+#     folium.Marker(
+#         location=[lat, lon],
+#         popup=(
+#             f"Neighborhood: {neighborhood}<br>"
+#             f"Sale Price: ${sale_price:,}<br>"
+#             f"Total Score: {total_score:.2f}"
+#         ),
+#         icon=folium.Icon(color='blue', icon='home')
+#     ).add_to(house_map)
+# 
+# house_map.save('top_10_houses2.html') 
 
 
 
