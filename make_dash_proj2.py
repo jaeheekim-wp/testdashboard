@@ -412,10 +412,38 @@ top_value_houses
 # 상위순으로 정렬 
 top_value_houses = top_value_houses.sort_values(by='Total_Score', ascending=False)
 top_value_houses
+
 # 모든 열을 표시하도록 설정
-pd.set_option('display.max_columns', None)
+# pd.set_option('display.max_columns', None)
 # 기본값으로 되돌리기
-pd.reset_option('display.max_columns')
+# pd.reset_option('display.max_columns')
+
+import folium
+import pandas as pd
+
+# 종합 점수 상위 10개 집의 데이터 선택
+top_10_houses = top_value_houses.head(10)
+
+# 중심 위치를 설정 (데이터의 중앙을 중심으로 설정)
+map_center = [top_10_houses['Latitude'].mean(), top_10_houses['Longitude'].mean()]
+
+# 지도 생성
+house_map = folium.Map(location=map_center, zoom_start=12)
+
+# 각 집의 위치에 마커 추가
+for _, house in top_10_houses.iterrows():
+    folium.Marker(
+        location=[top_10_houses['Latitude'], top_10_houses['Longitude']],
+        popup=(
+            f"Neighborhood: {top_10_houses['Neighborhood']}<br>"
+            f"Sale Price: ${top_10_houses['Sale_Price']:,}<br>"
+            f"Total Score: {top_10_houses['Total_Score']:.2f}"
+        ),
+        icon=folium.Icon(color='blue', icon='home')
+    ).add_to(house_map)
+
+# 지도 표시
+house_map.save('top_10_houses.html') 
 
 
 
