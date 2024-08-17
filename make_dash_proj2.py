@@ -390,7 +390,6 @@ plt.clf()
 
 # -----------------------------------------------------
 # KICHEN QUAL - 파일에 없슴! 뭘로 해야하나 
-
 # -----------------------------------------------------
 # 종합 평가 변수 
 
@@ -404,18 +403,19 @@ house1015['Total_Score'] = (
 
 house1015
 
-# 상위순으로 정렬 
-top_value_houses = house1015.sort_values(by='Total_Score', ascending=False)
 
 # 결과 확인
-top_value_houses[['Total_Score', 'Sale_Price', 'Gr_Liv_Area', 'Overall_Cond',
-                  'Garage_Cars', 'Year_Built', 'Neighborhood']]
+top_value_houses = house1015[["Longitude", 'Latitude', 'Neighborhood','Sale_Price', 'Score_GrLivArea', 'Score_Overall_Cond',
+                                    'Score_GarageCars', 'Score_year_remod','Score_Year_Built', 'Total_Score']]
 top_value_houses
 
+# 상위순으로 정렬 
+top_value_houses = top_value_houses.sort_values(by='Total_Score', ascending=False)
+top_value_houses
 # 모든 열을 표시하도록 설정
-# pd.set_option('display.max_columns', None)
+pd.set_option('display.max_columns', None)
 # 기본값으로 되돌리기
-# pd.reset_option('display.max_columns')
+pd.reset_option('display.max_columns')
 
 
 
