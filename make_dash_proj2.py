@@ -11,8 +11,15 @@ import statsmodels.api as sm
 import plotly.graph_objects as go
 import plotly.express as px
 
+import folium
 
-# 10~15만 표본 내 가성비 집 찾기 / for 20대 싱글 
+
+# 10~15만 표본 내 가성비 집 찾기 
+# for 20대 싱글 
+
+# ======================================
+# 사용할 데이터 분리하기 
+# ======================================
 
 # 데이터 불러오기 
 house= pd.read_csv("./data/houseprice/houseprice-with-lonlat.csv")
@@ -29,9 +36,9 @@ house1015 #1016개
 house1015 = house1015.sort_values("Gr_Liv_Area", ascending = False)
 house1015
 
-# -----------------------------------------------------
-# 변수별 평가 지표 만들기 =============================
-# -----------------------------------------------------
+# ======================================
+# 변수별 평가 지표 만들기 
+# ======================================
 
 # 1.Gr_Liv_Area 
 
@@ -55,9 +62,10 @@ house1015
 GrLivArea_low = house1015['Price_Per_Area'].quantile(0.1)  # 하위 10%의 평당 가격
 GrLivArea_high = house1015['Price_Per_Area'].quantile(0.9)  # 상위 10%의 평당 가격
 
+
 # 가성비 좋은 집들 필터링
-best_value_houses = house_2[house_2['Price_Per_Area'] <= GrLivArea_low]
-best_value_houses.sort_values('Price_Per_Area').head()
+# best_value_houses = house1015[house1015['Price_Per_Area'] <= GrLivArea_low]
+# best_value_houses.sort_values('Price_Per_Area').head()
 
 
 # 시각화
@@ -90,7 +98,7 @@ plt.clf()
 # 03
 # 면적별 가격 분포도 
 plt.figure(figsize=(10, 6))
-sns.scatterplot(x='Gr_Liv_Area', y='Sale_Price', data=house_2, color='skyblue')
+sns.scatterplot(x='Gr_Liv_Area', y='Sale_Price', data=house1015 , color='skyblue')
 plt.title('Gr_Liv_Area vs Sale_Price')
 plt.xlabel('Gr_Liv_Area')
 plt.ylabel('Sale_Price')
@@ -99,7 +107,7 @@ plt.show()
 # 03-1
 # 회귀선이 포함된 산점도 그리기
 plt.subplots_adjust(left=0.27, bottom=0.17)
-sns.regplot(x='Gr_Liv_Area', y='Sale_Price', data=house_2, scatter_kws={'s': 10}, line_kws={"color": "red"})
+sns.regplot(x='Gr_Liv_Area', y='Sale_Price', data=house1015 , scatter_kws={'s': 10}, line_kws={"color": "red"})
 plt.title('Gr_Liv_Area vs Sale_Price', size =7)
 plt.xlabel('Gr_Liv_Area', size =7)
 plt.ylabel('Sale_Price', size =7)
@@ -110,7 +118,7 @@ plt.clf()
 # 회귀직선 
 # fig 활용 
 fig = px.scatter(
-    house_2,
+    house1015 ,
     x="Gr_Liv_Area",
     y="Sale_Price",
     trendline="ols"
@@ -139,6 +147,7 @@ fig.update_traces(marker=dict(size=7, opacity = 0.5))
 fig.show()
 
 # -----------------------------------------------------
+
 # 2.Garage_Cars
 
 # 10~15만 내의 평가지표 변수 추출
@@ -168,8 +177,8 @@ house1015['Score_GarageCars'] = np.where(house1015['Garage_Cars'] == 0, 1,
 house1015[['Score_GarageCars']] 
 
 
-
 # -----------------------------------------------------
+
 # 3.Overall_Cond
 
 # 10~15만 내의 평가지표 변수 추출
@@ -185,7 +194,7 @@ house1015["Score_Overall_Cond"] = np.where(house1015["Overall_Cond"] == 'Very_Po
                                    np.where(house1015["Overall_Cond"] == "Average", 3,
                                    np.where(house1015["Overall_Cond"] == "Above_Average", 3,
                                    np.where(house1015["Overall_Cond"] == "Good", 4,
-                                   np.where(house1015["Overall_Cond"] == "Very_Good", 4, 5
+                                   np.where(house1015["Overall_Cond"] == "Very_Good", 4, 5)
 house1015[["Score_Overall_Cond"]]
 
 
@@ -238,6 +247,7 @@ plt.clf()
 # plt.clf()
 
 # -----------------------------------------------------
+
 # 4.Year_Remod_Add
 
 # 10~15만 내의 평가지표 변수 추출
@@ -268,7 +278,7 @@ house1015[["Score_year_remod"]]
 
 # 가성비 계산 (상태 점수를 가격으로 나눔)
 # 높은 값은 상대적으로 저렴한 가격에 상태가 좋은 집
-house1015["Value_For_Money"] = house1015["Score_year_remod"] / house1015["Sale_Price"]
+# house1015["Value_For_Money"] = house1015["Score_year_remod"] / house1015["Sale_Price"]
 
 # 가성비 높은 순으로 정렬
 house1015 = house1015.sort_values("Value_For_Money", ascending=False)
@@ -321,6 +331,7 @@ plt.show()
 plt.clf()
 
 # -----------------------------------------------------
+
 # 5.Year_Built
 
 # 10~15만 내의 평가지표 변수 추출
@@ -388,10 +399,9 @@ plt.ylabel("집값")
 plt.show()
 plt.clf()
 
-# -----------------------------------------------------
-# KICHEN QUAL - 파일에 없슴! 뭘로 해야하나 
-# -----------------------------------------------------
+# ======================================
 # 종합 평가 변수 
+# ======================================
 
 # 종합 평가 점수 계산
 house1015['Total_Score'] = (
@@ -400,10 +410,15 @@ house1015['Total_Score'] = (
     house1015['Score_Overall_Cond'] + 
     house1015['Score_year_remod'] + 
     house1015['Score_Year_Built']) / 5
-
+    
 house1015
 
-# 결과 확인
+# ======================================
+# 지도 그리기 -전체 TOP10 / 구역별 TOP2
+# ======================================
+
+# 01.전체 상위 10곳 표시
+
 top_value_houses = house1015[["Longitude", 'Latitude', 'Neighborhood','Sale_Price', 'Score_GrLivArea', 'Score_Overall_Cond',
                                     'Score_GarageCars', 'Score_year_remod','Score_Year_Built', 'Total_Score']]
 top_value_houses
@@ -411,14 +426,6 @@ top_value_houses
 # 상위순으로 정렬 
 top_value_houses = top_value_houses.sort_values(by='Total_Score', ascending=False)
 top_value_houses
-
-# 모든 열을 표시하도록 설정
-# pd.set_option('display.max_columns', None)
-# 기본값으로 되돌리기
-# pd.reset_option('display.max_columns')
-
-import folium
-import pandas as pd
 
 # 종합 점수 상위 10개 집의 데이터 선택
 top_10_houses = top_value_houses.head(10)
@@ -442,15 +449,7 @@ for _, house in top_10_houses.iterrows():
     ).add_to(house_map)
 
 # 지도 표시
-house_map.save('top_10_houses.html')
-
-print(len(list(zip(
-    top_10_houses['Latitude'], 
-    top_10_houses['Longitude'], 
-    top_10_houses['Neighborhood'], 
-    top_10_houses['Sale_Price'], 
-    top_10_houses['Total_Score']
-))))
+house_map.save('top_10_houses.html') # 아래 5개 겹쳐있음!
 
 # for lat, lon, neighborhood, sale_price, total_score in zip(
 #     top_10_houses['Latitude'], 
@@ -470,6 +469,76 @@ print(len(list(zip(
 #     ).add_to(house_map)
 # 
 # house_map.save('top_10_houses2.html') 
+
+# -------------------------------------------
+
+# 02.동네별 상위 2곳 표시
+                     
+# house1015의 네이버후드별 상위 2개
+# Neighborhood 별로 그룹화
+
+grouped = house1015.groupby('Neighborhood')
+
+# 각 그룹 내에서 Total_Score 기준으로 정렬한 후 상위 2개의 행만 추출
+top_2_per_group = grouped.apply(lambda x: x.sort_values(by='Total_Score', ascending=False).head(2))
+
+# 인덱스를 리셋해서 결과를 사용하기 쉽게 만듦
+top_2_per_group = top_2_per_group.reset_index(drop=True)
+top_2_per_group
+#> 22개 동네
+#> 41개 나오는 이유: Landmark, Stone_Brook, Timberland에 10-15만 집이 1개뿐
+
+
+## 지도위에 집그리기
+my_map = folium.Map(location=[42.034722, -93.62],
+                     zoom_start=12,
+                     tiles='cartodbpositron')
+
+# 동네별 가운데 위치
+center = house_copy.groupby('Neighborhood')[['Longitude', 'Latitude']].mean()
+center
+
+# 인덱스와 좌표를 추출
+neighborhoods = center.index
+longitudes = center['Longitude']
+latitudes = center['Latitude']
+
+## 지도1
+# zip을 사용하여 텍스트 추가 (only text)
+for neighborhood, lon, lat in zip(neighborhoods, longitudes, latitudes):
+    folium.Marker(
+        location=[lat, lon],
+        icon=folium.DivIcon(html=f'<div style="font-size: 12pt; color: black;">{neighborhood}</div>'),
+        icon_size=(0, 0)
+    ).add_to(my_map)
+    
+
+
+# 각 상위 2개 집에 마커 추가
+for _, row in top_2_per_group.iterrows():
+    folium.CircleMarker(
+        location=[row['Latitude'], row['Longitude']],
+        popup=(
+            f"Neighborhood: {row['Neighborhood']}<br>"
+            f"Sale Price: ${row['Sale_Price']:,}<br>"
+            f"Total Score: {row['Total_Score']:.2f}"
+        ),
+        icon=folium.Icon(color='blue', icon='home')
+    ).add_to(my_map)
+
+
+# 동네 범위 표시 추가 
+for x, y in zip(longitudes, latitudes):
+    folium.Circle(
+        location=[y, x],  # latitude, longitude 순서
+        radius=250,  # 반경 (미터 단위)
+        color='#FFDA76',
+        fill=True,
+        fill_color='#FFDA76'
+    ).add_to(my_map)
+    
+# 지도 저장하기     
+my_map.save("map_with_text.html")
 
 
 
