@@ -213,11 +213,63 @@ plt.show()
 plt.clf()
 
 # 02
-# 점수 부여 후 분포도 
+# 점수 부여 후 분포도
+
+
 house1015['Score_GarageCars'] = np.where(house1015['Garage_Cars'] == 0, 1,
                              np.where((house1015['Garage_Cars'] >= 1) & (house1015['Garage_Cars'] <= 2), 3,
                              np.where((house1015['Garage_Cars'] >= 3) & (house1015['Garage_Cars'] <= 5), 5, None)))
 house1015[['Score_GarageCars']] 
+
+frequency = house_10.groupby('score_garagecars').size()
+frequency
+
+plt.figure(figsize=(8, 5))
+sns.barplot(frequency)
+plt.title('점수 분포')
+plt.xlabel('점수')
+plt.ylabel('빈도')
+plt.show()
+plt.clf()
+
+# 지도 표시
+import folium
+from folium import Marker
+from folium.plugins import MarkerCluster
+
+# 기본 지도를 생성합니다.
+m2 = folium.Map(location=[house1015['Latitude'].mean(),
+                            house1015['Longitude'].mean()], 
+                            zoom_start=12,
+                            tiles="cartodbpositron")
+
+# 마커 클러스터를 생성합니다.
+marker_cluster = MarkerCluster().add_to(m2)
+
+# 점수에 따른 색상 맵핑
+score_color_mapping = {
+    1: 'red',
+    2: 'orange',
+    3: 'yellow',
+    4: 'green',
+    5: 'blue'
+}
+
+# house1015 데이터프레임을 반복하여 마커를 추가합니다.
+for _, row in house1015.iterrows():
+    folium.CircleMarker(
+        location=[row['Latitude'], row['Longitude']],
+        radius=5,
+        color=score_color_mapping[row['Score_GarageCars']],
+        fill=True,
+        fill_color=score_color_mapping[row['Score_GarageCars']],
+        fill_opacity=0.7,
+        popup=f"Score: {row['Score_GrLivArea']}<br>Price: ${row['Sale_Price']:,.0f}<br>Area: {row['Garage_Cars']} sqft"
+    ).add_to(marker_cluster)
+
+# 지도를 저장하거나 표시합니다.
+m2.save("house_car.html")
+m
 
 
 # -----------------------------------------------------
@@ -468,6 +520,19 @@ plt.xticks(range(1, 6, 1))
 plt.yticks(range(100000, 150000, 10000))
 plt.xlabel("점수")
 plt.ylabel("집값")
+plt.show()
+plt.clf()
+
+
+# 5. 건축 연도와 리모델링 여부에 따른 분석
+# Scatter Plot with Color Coding (색상 코딩된 산점도):
+# Year_Built와 Year_Remod_Add를 X축과 Y축에 두고 Sale_Price를 색상으로 
+# 코딩하여 건축 연도 및 리모델링 여부에 따른 집값의 차이를 분석합니다.
+plt.subplots_adjust(left=0.27, bottom=0.17)
+sns.scatterplot(x='Year_Built', y='Year_Remod_Add', data=house1015, scatter_kws={'s': 10}, line_kws={"color": "red"})
+plt.title('Gr_Liv_Area vs Sale_Price', size =7)
+plt.xlabel('Gr_Liv_Area', size =7)
+plt.ylabel('Sale_Price', size =7)
 plt.show()
 plt.clf()
 
