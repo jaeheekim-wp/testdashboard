@@ -72,12 +72,12 @@ GrLivArea_high = house1015['Price_Per_Area'].quantile(0.9)  # 상위 10%의 평�
 
 # 01
 # 평당 가격 분포 히스토그램
-plt.figure(figsize=(10, 10))
+plt.subplots_adjust(left=0.17, bottom=0.17)
 plt.rcParams.update({"font.family" : "Malgun Gothic"}) 
-sns.histplot(house1015['Price_Per_Area'], bins=30, kde=True, color='skyblue')
-plt.title('평당 가격 분포도', fontsize=15)
-plt.xlabel('평당 가격', fontsize=12)
-plt.ylabel('빈도', fontsize=12)
+sns.histplot(house1015['Price_Per_Area'], bins=30, kde=True, color='#F6E96B',edgecolor=None)
+plt.title('평당 가격 분포도', fontsize=10)
+plt.xlabel('평당 가격', fontsize=9)
+plt.ylabel('빈도', fontsize=9)
 plt.show()
 plt.clf()
 
@@ -87,11 +87,14 @@ score_grouped = house1015.groupby('Score_GrLivArea')['Price_Per_Area'].mean().re
 score_grouped
 
 # 각 점수별 평균 평당 가격 막대그래프 
-plt.subplots_adjust(left=0.15, bottom=0.13)  # 여백 값은 필요에 맞게 조정 가능
-sns.barplot(data=score_grouped, x='Score_GrLivArea', y='Price_Per_Area', hue ='Score_GrLivArea', palette='deep')
-plt.title('각 점수별 평균 평당 가격', fontsize=15)
-plt.xlabel('평가 점수', fontsize=12)
-plt.ylabel('평균 평당 가격', fontsize=12)
+plt.subplots_adjust(left=0.15, bottom=0.16)  # 여백 값은 필요에 맞게 조정 가능
+gla_palette = sns.color_palette(["#A5DD9B", "#C5EBAA", "#F6F193", "#F2C18D"])
+sns.barplot(data=score_grouped, x='Score_GrLivArea', y='Price_Per_Area', hue ='Score_GrLivArea', palette= gla_palette)
+plt.title('각 점수별 평균 평당 가격', fontsize=12)
+plt.xlabel('평가 점수', fontsize=9)
+plt.ylabel('평균 평당 가격', fontsize=9)
+# 범례 크기 조정
+plt.legend(title="Score_year_remod", prop={'size': 6}, title_fontsize='6')
 plt.show()
 plt.clf()
 
@@ -146,6 +149,46 @@ fig.update_traces(marker=dict(size=7, opacity = 0.5))
 # 시각화 
 fig.show()
 
+# 지도 표시
+import folium
+from folium import Marker
+from folium.plugins import MarkerCluster
+
+# 기본 지도를 생성합니다.
+m = folium.Map(location=[house1015['Latitude'].mean(),
+                            house1015['Longitude'].mean()], 
+                            zoom_start=12,
+                            tiles="cartodbpositron")
+
+# 마커 클러스터를 생성합니다.
+marker_cluster = MarkerCluster().add_to(m)
+
+# 점수에 따른 색상 맵핑
+score_color_mapping = {
+    1: 'red',
+    2: 'orange',
+    3: 'yellow',
+    4: 'green',
+    5: 'blue'
+}
+
+# house1015 데이터프레임을 반복하여 마커를 추가합니다.
+for _, row in house1015.iterrows():
+    folium.CircleMarker(
+        location=[row['Latitude'], row['Longitude']],
+        radius=5,
+        color=score_color_mapping[row['Score_GrLivArea']],
+        fill=True,
+        fill_color=score_color_mapping[row['Score_GrLivArea']],
+        fill_opacity=0.7,
+        popup=f"Score: {row['Score_GrLivArea']}<br>Price: ${row['Sale_Price']:,.0f}<br>Area: {row['Gr_Liv_Area']} sqft"
+    ).add_to(marker_cluster)
+
+# 지도를 저장하거나 표시합니다.
+m.save("house_gla.html")
+m
+
+
 # -----------------------------------------------------
 
 # 2.Garage_Cars
@@ -194,8 +237,9 @@ house1015["Score_Overall_Cond"] = np.where(house1015["Overall_Cond"] == 'Very_Po
                                    np.where(house1015["Overall_Cond"] == "Average", 3,
                                    np.where(house1015["Overall_Cond"] == "Above_Average", 3,
                                    np.where(house1015["Overall_Cond"] == "Good", 4,
-                                   np.where(house1015["Overall_Cond"] == "Very_Good", 4, 5)
-house1015[["Score_Overall_Cond"]]
+                                   np.where(house1015["Overall_Cond"] == "Very_Good", 4, 5))))))))
+
+house1015["Score_Overall_Cond"]
 
 
 # 시각화
@@ -226,14 +270,15 @@ plt.show()
 plt.clf()
 
 # 03
-# 점수에 따른 집값 선그래프 
-sns.lineplot(x = x, y = y, data = house1015, errorbar = None, marker = "o")
+# 점수에 따른 집값 선그래프
+plt.subplots_adjust(left=0.20, bottom=0.20)
+sns.lineplot(x = x, y = y, data = house1015, errorbar = None, marker = "o", color="#FEBBCC")
 plt.rcParams.update({"font.family" : "Malgun Gothic"})    
-plt.title("10만 ~ 15만 달러 주택의 집값별 컨디션 점수")
+plt.title("10만 ~ 15만 달러 주택의 집값별 컨디션 점수", fontsize = 10)
 plt.xticks(range(1, 6, 1))
 plt.yticks(range(100000, 150000, 10000))
-plt.xlabel("점수")
-plt.ylabel("집값")
+plt.xlabel("점수", fontsize = 9)
+plt.ylabel("집값", fontsize = 9)
 plt.show()
 plt.clf()
 
@@ -255,18 +300,19 @@ house1015
 house1015.columns
 
 # 리모델링 연도에 따른 가성비 집
-house1015[["Year_Built"]].max() #2008
-house1015[["Year_Built"]].min() #1872
+
+house[["Year_Remod_Add"]].max() #2010
+house[["Year_Remod_Add"]].min() #1950
 
 #각 집의 상태를 평가한 점수 부여
 def calculate_condition_score(row):
-    if row["Year_Remod_Add"] > 2010:
+    if row["Year_Remod_Add"] > 1998:
         return 5  # 리모델링이 최근에 이루어진 경우
-    elif row["Year_Remod_Add"] > 2000:
+    elif row["Year_Remod_Add"] > 1986:
         return 4
-    elif row["Year_Remod_Add"] > 1990:
+    elif row["Year_Remod_Add"] > 1974:
         return 3
-    elif row["Year_Remod_Add"] > 1980:
+    elif row["Year_Remod_Add"] > 1962:
         return 2
     else:
         return 1  # 오래된 주택일 경우
@@ -281,9 +327,9 @@ house1015[["Score_year_remod"]]
 # house1015["Value_For_Money"] = house1015["Score_year_remod"] / house1015["Sale_Price"]
 
 # 가성비 높은 순으로 정렬
-house1015 = house1015.sort_values("Value_For_Money", ascending=False)
-house1015.head(50)
-house1015
+# house1015 = house1015.sort_values("Value_For_Money", ascending=False)
+# house1015.head(50)
+# house1015
 
 # 시각화
 
@@ -291,7 +337,7 @@ house1015
 # 가성비/판매 가격(Sale_Price) 산점도
 sns.scatterplot(
     data=house1015, 
-    x="Value_For_Money", 
+    x="Score_year_remod", 
     y="Sale_Price", 
     hue="Score_year_remod",  # 상태 점수에 따라 색상 구분
     palette="viridis",  # 색상 팔레트
@@ -312,21 +358,49 @@ plt.clf()
 
 # 02
 # 히스토그램 그리기 ( 소수점 범위가 작아서 안그려짐 )
-plt.hist(house1015["Value_For_Money"], bins=30, color='skyblue')
+plt.hist(house1015["Score_year_remod"], bins=30, color='skyblue')
 plt.xlabel('Value For Money')
 plt.ylabel('Frequency')
 plt.title('Histogram of Value For Money')
+plt.show()
+plt.clf()
 
-# X축을 로그 스케일로 변환
-plt.xscale('log')
+# 03
+# 막대 그래프 그리기
+custom_palette = sns.color_palette(["#FEFFD2", "#FFEEA9", "#FFBF78", "#FF7D29"])
+sns.countplot(x="Score_year_remod", data=house1015, hue="Score_year_remod", palette=custom_palette)
 
-# X축 라벨 포맷 설정
-plt.xticks([1e-5, 1e-4, 1e-3, 1e-2, 1e-1], ['0.00001', '0.0001', '0.001', '0.01', '0.1'])
+# 한글 폰트 설정
+plt.rcParams.update({"font.family": "Malgun Gothic"})    
+plt.title("10만 ~ 15만 달러 주택의 리모델링 점수의 빈도수", fontsize=10)
+plt.xlabel("점수", fontsize=8)
+plt.ylabel("빈도", fontsize=8)
 
-# X축 범위 설정
-plt.ylim(0, 0.0001)
-plt.xlim(1e-5, 1e-3)  # 이 범위는 데이터에 맞게 조정
+# 범례 크기 조정
+plt.legend(title="Score_year_remod", prop={'size': 6}, title_fontsize='6')
 
+# 막대 그래프 둥글게 처리
+for patch in plt.gca().patches:
+    patch.set_linewidth(1)
+    patch.set_edgecolor('white')
+    patch.set_capstyle('round')
+    
+plt.show()
+plt.clf()
+
+# 04
+# 선그래프
+sns.lineplot(x = house1015["Score_year_remod"], 
+             y = house1015["Sale_Price"], 
+             data = house1015, errorbar = None, 
+             marker = "o", color="#FF7D29")
+plt.rcParams.update({"font.family" : "Malgun Gothic"})
+plt.subplots_adjust(left=0.22, bottom=0.17)
+plt.title("10만 ~ 15만 달러 주택의 집값별 리모델 평가 점수", fontsize = 10)
+plt.xticks(range(1, 6, 1))
+plt.yticks(range(100000, 150000, 10000))
+plt.xlabel("점수", fontsize = 9)
+plt.ylabel("집값", fontsize = 9)
 plt.show()
 plt.clf()
 
@@ -377,7 +451,6 @@ y1 = house1015["Sale_Price"]
 
 # 01
 # 막대그래프  
-
 sns.countplot(x = x1, data = house1015)
 plt.rcParams.update({"font.family" : "Malgun Gothic"})    
 plt.title("10만 ~ 15만 달러 주택의 건축년도 점수의 빈도수")
@@ -388,7 +461,6 @@ plt.clf()
 
 # 02
 # 선그래프
-
 sns.lineplot(x = x1, y = y1, data = house1015, errorbar = None, marker = "o")
 plt.rcParams.update({"font.family" : "Malgun Gothic"})    
 plt.title("10만 ~ 15만 달러 주택의 집값별 건축년도 점수")
@@ -495,7 +567,7 @@ my_map = folium.Map(location=[42.034722, -93.62],
                      tiles='cartodbpositron')
 
 # 동네별 가운데 위치
-center = house_copy.groupby('Neighborhood')[['Longitude', 'Latitude']].mean()
+center = house1015.groupby('Neighborhood')[['Longitude', 'Latitude']].mean()
 center
 
 # 인덱스와 좌표를 추출
